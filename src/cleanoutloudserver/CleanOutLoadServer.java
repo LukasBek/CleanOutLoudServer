@@ -5,17 +5,12 @@
  */
 package cleanoutloudserver;
 
-/**
- *
- * @author lukas
- */
-public class CleanOutLoudServer {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        // TODO code application logic here
+public class CleanOutLoadServer {
+    
+    public static void main(String[] arg) throws Exception{
+        
+        
     }
     
 }
