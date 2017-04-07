@@ -11,6 +11,9 @@ public class CleanOutLoud {
         boolean loggedIn;
         
         
+        
+        
+        
     }
     
 }
