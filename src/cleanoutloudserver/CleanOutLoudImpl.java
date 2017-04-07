@@ -106,9 +106,9 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     private Users getCorrectUser(String userName, String password) {
-        User user;
+        Users user;
         
-        
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     
