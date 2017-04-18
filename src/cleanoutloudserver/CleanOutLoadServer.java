@@ -5,10 +5,17 @@
  */
 package cleanoutloudserver;
 
+import javax.xml.ws.Endpoint;
+
 
 public class CleanOutLoadServer {
     
     public static void main(String[] arg) throws Exception{
+        
+        ICleanOutLoudController CoL = new CleanOutLoudControllerImpl();
+        
+        Endpoint.publish("http://[::]:3769/col", CoL);
+        System.out.println("Clean out loud server startet");
         
         
     }
