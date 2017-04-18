@@ -22,19 +22,31 @@ public class test {
          EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
          EntityManager emq = emf.createEntityManager();
          Query allUsersq = emq.createNativeQuery("select * from Users", Users.class);
+         
+         Query allCampssq = emq.createNativeQuery("select * from Camps", Camps.class);
+         List<Camps> allCamps = allCampssq.getResultList();
+         
 
          List<Users> allUsers = allUsersq.getResultList();
          for(Users u: allUsers){
-             System.out.println("u "+u.getUserName());
+             System.out.println("user: "+u.getUserName());
          }
          
+         for(Camps c: allCamps) {
+             System.out.println(c.getCampName());
+         }
          
-         
-//             Users u = new Users("nicki2");
-//             u.setPassword("trerer");
-//             u.setUserType("manager");
+//         Camps c = new Camps();
+//         c.setCampName("hulabula3");
+//             persist(c);
+//         
+//             Users user1 = new Users("nicki2");
+//             user1.setPassword("tre");
+//             user1.setUserType("manager");
+//             user1.setToken("testToken");
+//             user1.setCamp(c);
 //             
-//             persist(u);
+//             persist(user1);
     
              
     
