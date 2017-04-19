@@ -12,7 +12,8 @@ import DBObjects.QuizAnswers;
 import DBObjects.Users;
 import Objects.Camp;
 import Objects.User;
-import brugerautorisation.transport.soap.Brugeradmin;
+import brugerautorisation.transport.rmi.Brugeradmin;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.net.URL;
@@ -57,7 +58,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
             if (usersql.getResultList().size() == 1) {
                 Users user = allLoggedInUsers.get(0);
                 user.setToken(token);
-                persist(user);
+                persistMerge(user);
                 return token;
             } else {
                 System.out.println("Kunne ikke ligge ind via CoL");
@@ -138,7 +139,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     
-    public synchronized void persist(Object object) {
+    public synchronized void persistInsert(Object object) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
@@ -151,6 +152,22 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         } finally {
             em.close();
         }
+    }
+        
+        public synchronized void persistMerge(Object object) {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager em = emf.createEntityManager();
+        em.getTransaction().begin();
+        try {
+            em.merge(object);
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            em.getTransaction().rollback();
+        } finally {
+            em.close();
+        }
+        
     }
     
 }
