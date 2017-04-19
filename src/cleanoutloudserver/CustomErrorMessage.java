@@ -9,28 +9,28 @@ package cleanoutloudserver;
  *
  * @author Nicki
  */
-public class loginError extends Exception {
+public class CustomErrorMessage extends Exception {
     
-    public loginError()
+    public CustomErrorMessage()
     {
     }
     
-    public loginError(String message)
+    public CustomErrorMessage(String message)
     {
         super(message);
     }
     
-    public loginError(Throwable cause)
+    public CustomErrorMessage(Throwable cause)
     {
         super(cause);
     }
     
-    public loginError(String message, Throwable cause)
+    public CustomErrorMessage(String message, Throwable cause)
     {
         super(message, cause);
     }
     
-    public loginError(String message, Throwable cause,
+    public CustomErrorMessage(String message, Throwable cause,
             boolean enableSuppression, boolean writableStackTrace)
     {
         super(message, cause, enableSuppression, writableStackTrace);

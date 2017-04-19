@@ -6,6 +6,7 @@
 package cleanoutloudserver;
 
 import DBObjects.AnsweredQuizzes;
+import DBObjects.Camps;
 import DBObjects.Messages;
 import DBObjects.Quiz;
 import DBObjects.QuizAnswers;
@@ -44,6 +45,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     
     @Override
     public String login(String userName, String password) throws Exception, loginError {
+        System.out.println("username: " + userName + "\n password: " + password);
         Brugeradmin ba = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
         try {
             ba.hentBruger(userName, password);
@@ -94,8 +96,14 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
-    public ArrayList<String> getCamps() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Camps> getCamps() {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Query campssql = emq.createNativeQuery("SELECT * FROM Camps;", Camps.class);
+        List<Camps> allCamps  = campssql.getResultList();
+        return allCamps;
+        
     }
     
     @Override
@@ -104,8 +112,29 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
-    public void createUser(String userName, String password, String camp, String userType, String token) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void createUser(String userName, String password, String camp, String userType, String token) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Users newUser = new Users();
+        if (userType.equals("user")) {
+            newUser.setUserType(userType);
+        } else if (userType.equals("admin") || userType.equals("manager")) {
+            Users requestingUser = getUserFromToken(token);
+            if (requestingUser.getUserType().equals("admin")) {
+                newUser.setUserType(userType);
+            } else {
+                throw new CustomErrorMessage("Det er kun tilladt for admins at oprette managers og admins");
+            }
+        }
+        
+        newUser.setUserName(userName);
+        newUser.setPassword(password);
+        Query campssql = emq.createNativeQuery("SELECT * FROM Camps WHERE campName='" + camp + "';", Camps.class);
+        Camps campFromDB = (Camps) campssql.getSingleResult();
+        newUser.setCamp(campFromDB);
+        newUser.setToken("");
+        persistInsert(newUser);
     }
     
     @Override
@@ -153,8 +182,8 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
             em.close();
         }
     }
-        
-        public synchronized void persistMerge(Object object) {
+    
+    public synchronized void persistMerge(Object object) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
@@ -168,6 +197,22 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
             em.close();
         }
         
+    }
+    
+    private Users getUserFromToken(String token) throws CustomErrorMessage {
+        if (!token.equals("")) {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Query userdb = emq.createNativeQuery("SELECT * FROM Users WHERE token='" + token + "';", Users.class);
+        if (!(userdb.getResultList().size() == 1)) {
+            throw new CustomErrorMessage("Brugeren kunne ikke findes via token");
+        }
+        Users user = (Users) userdb.getSingleResult();
+        return user;
+        } else {
+            throw new CustomErrorMessage("Der er ikke logget ind. Token findes ikke...");
+        }
     }
     
 }

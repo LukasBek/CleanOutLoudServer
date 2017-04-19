@@ -1,6 +1,7 @@
 package cleanoutloudserver;
 
 import DBObjects.AnsweredQuizzes;
+import DBObjects.Camps;
 import DBObjects.Messages;
 import DBObjects.Quiz;
 import DBObjects.QuizAnswers;
@@ -16,13 +17,15 @@ import javax.jws.WebService;
 public interface ICleanOutLoud {
     
     
-    @WebMethod ArrayList<String> getCamps();
+//    @WebMethod ArrayList<String> getCamps();
+    
+    @WebMethod List<Camps> getCamps();
     
     @WebMethod String login(String userName, String password) throws Exception;
     
     @WebMethod String loginWithBrugerAutMod(String userName, String password) throws Exception;
     
-    @WebMethod void createUser(String userName, String password, String camp, String userType, String token);
+    @WebMethod void createUser(String userName, String password, String camp, String userType, String token) throws CustomErrorMessage;
     
     @WebMethod void editUser(Users user, String token);
     
