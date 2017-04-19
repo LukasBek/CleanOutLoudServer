@@ -1,9 +1,13 @@
 package cleanoutloudserver;
 
 import DBObjects.AnsweredQuizzes;
+import DBObjects.Messages;
 import DBObjects.Quiz;
 import DBObjects.QuizAnswers;
+import DBObjects.Users;
 import Objects.Camp;
+import java.util.ArrayList;
+import java.util.List;
 import javax.jws.WebMethod;
 import javax.jws.WebService;
 
@@ -12,11 +16,23 @@ import javax.jws.WebService;
 public interface ICleanOutLoud {
     
     
-    @WebMethod Camp getCamp(String campName);
+    @WebMethod ArrayList<String> getCamps();
     
     @WebMethod String login(String userName, String password) throws Exception;
     
-    @WebMethod Quiz getQuiz();
+    @WebMethod String loginWithBrugerAutMod(String userName, String password) throws Exception;
+    
+    @WebMethod void createUser(String userName, String password, String camp, String userType, String token);
+    
+    @WebMethod void editUser(Users user, String token);
+    
+    @WebMethod List<Messages> getWallMessages();
+    
+    @WebMethod void addMessage(String message, String token);
+    
+    @WebMethod void addComment(String comment, Messages message, String token);
+    
+    @WebMethod ArrayList<Quiz> getQuizzes();
     
     @WebMethod QuizAnswers getQuizAnswers(String quizName);
     

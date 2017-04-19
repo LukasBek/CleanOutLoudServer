@@ -12,7 +12,7 @@ public class CleanOutLoadServer {
     
     public static void main(String[] arg) throws Exception{
         
-        ICleanOutLoudController CoL = new CleanOutLoudControllerImpl();
+        ICleanOutLoud CoL = new CleanOutLoudImpl();
         
         Endpoint.publish("http://[::]:3769/col", CoL);
         System.out.println("Clean out loud server startet");

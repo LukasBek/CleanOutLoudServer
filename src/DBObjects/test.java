@@ -21,20 +21,33 @@ public class test {
          
          EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
          EntityManager emq = emf.createEntityManager();
-         Query allUsersq = emq.createNativeQuery("select * from Users", Users.class);
+//         Query allUsersq = emq.createNativeQuery("select * from Users", Users.class);
          
-         Query allCampssq = emq.createNativeQuery("select * from Camps", Camps.class);
-         List<Camps> allCamps = allCampssq.getResultList();
+         
+Query user = emq.createNativeQuery("SELECT * FROM Users WHERE userName='" + "nick" + "' AND password='" + "nicki12345" +"';", Users.class);
+                
+List<Users> userss = user.getResultList();
+
+try {
+    System.out.println(userss.get(0).getUserName());
+    
+} catch (ArrayIndexOutOfBoundsException e) {
+    System.out.println("Bruger findes ikke...");
+}
          
 
-         List<Users> allUsers = allUsersq.getResultList();
-         for(Users u: allUsers){
-             System.out.println("user: "+u.getUserName());
-         }
-         
-         for(Camps c: allCamps) {
-             System.out.println(c.getCampName());
-         }
+//         Query allCampssq = emq.createNativeQuery("select * from Camps", Camps.class);
+//         List<Camps> allCamps = allCampssq.getResultList();
+//         
+//
+//         List<Users> allUsers = allUsersq.getResultList();
+//         for(Users u: allUsers){
+//             System.out.println("user: "+u.getUserName());
+//         }
+//         
+//         for(Camps c: allCamps) {
+//             System.out.println(c.getCampName());
+//         }
          
 //         Camps c = new Camps();
 //         c.setCampName("hulabula3");
