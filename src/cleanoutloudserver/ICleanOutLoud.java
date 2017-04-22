@@ -27,17 +27,21 @@ public interface ICleanOutLoud {
     
     @WebMethod void createUser(String userName, String password, String camp, String userType, String token) throws CustomErrorMessage;
     
-    @WebMethod void editUser(Users user, String token);
+    @WebMethod Users getUser(String userName, String token) throws CustomErrorMessage;
+    
+    @WebMethod void setUser(Users user, String token) throws CustomErrorMessage;
     
     @WebMethod List<Messages> getWallMessages();
     
-    @WebMethod void addMessage(String message, String token);
+    @WebMethod void addMessage(String message, String token) throws CustomErrorMessage;
     
-    @WebMethod void addComment(String comment, Messages message, String token);
+    @WebMethod Messages getMessage(int messageId) throws CustomErrorMessage;
     
-    @WebMethod ArrayList<Quiz> getQuizzes();
+    @WebMethod void addComment(String comment, Messages message, String token) throws CustomErrorMessage;
     
-    @WebMethod QuizAnswers getQuizAnswers(String quizName);
+    @WebMethod List<Quiz> getQuizzes();
+    
+    @WebMethod List<QuizAnswers> getQuizAnswers(String quizName);
     
     @WebMethod AnsweredQuizzes getUsersOfAnsweredQuizzes(String quizName);
     

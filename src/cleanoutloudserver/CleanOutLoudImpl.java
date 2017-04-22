@@ -7,6 +7,7 @@ package cleanoutloudserver;
 
 import DBObjects.AnsweredQuizzes;
 import DBObjects.Camps;
+import DBObjects.Comments;
 import DBObjects.Messages;
 import DBObjects.Quiz;
 import DBObjects.QuizAnswers;
@@ -17,11 +18,17 @@ import brugerautorisation.transport.rmi.Brugeradmin;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.jws.WebService;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -38,35 +45,45 @@ import javax.xml.ws.Service;
 @WebService(endpointInterface = "cleanoutloudserver.ICleanOutLoud")
 public class CleanOutLoudImpl implements ICleanOutLoud{
     
+    ArrayList<String> brugerAutModulTokens = new ArrayList<>();
+    
     EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
     EntityManager emq = emf.createEntityManager();
     
     
     
     @Override
-    public String login(String userName, String password) throws Exception, loginError {
+    public String login(String userName, String password) throws loginError {
         System.out.println("username: " + userName + "\n password: " + password);
-        Brugeradmin ba = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
-        try {
-            ba.hentBruger(userName, password);
-            System.out.println("Login success");
-            String token = generateToken(userName);
-            return token;
-        } catch (Exception e) {
-            System.out.println("Kunne ikke logge ind via brugeraut.. modulet");
-            String token = generateToken(userName);
-            Query usersql = emq.createNativeQuery("SELECT * FROM Users WHERE userName='" + userName + "' AND password='" + password+"';", Users.class);
-            List<Users> allLoggedInUsers = usersql.getResultList();
-            if (usersql.getResultList().size() == 1) {
-                Users user = allLoggedInUsers.get(0);
-                user.setToken(token);
-                persistMerge(user);
-                return token;
-            } else {
-                System.out.println("Kunne ikke ligge ind via CoL");
-                throw new loginError(e);
-            }
-        }
+//        try {
+//            return loginWithBrugerAutMod(userName, password);
+//        } catch (NotBoundException | MalformedURLException  | RemoteException e ) {
+//            e.printStackTrace();
+System.out.println("Kunne ikke logge ind via brugeraut.. modulet");
+String token = generateToken(userName);
+Query usersql = emq.createNativeQuery("SELECT * FROM Users WHERE userName='" + userName + "' AND password='" + password+"';", Users.class);
+List<Users> allLoggedInUsers = usersql.getResultList();
+if (usersql.getResultList().size() == 1) {
+    Users user = allLoggedInUsers.get(0);
+    user.setToken(token);
+    persistMerge(user);
+    return token;
+} else {
+    System.out.println("Kunne ikke ligge ind via CoL");
+    throw new loginError("Kunne ikke logge ind via brugeradmin modulet eller CoL");
+}
+//        }
+    }
+    
+    @Override
+    public String loginWithBrugerAutMod(String userName, String password) throws NotBoundException, MalformedURLException, RemoteException {
+        Brugeradmin ba;
+        ba = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
+        ba.hentBruger(userName, password);
+        System.out.println("Login success");
+        String token = generateToken(userName);
+        brugerAutModulTokens.add(token);
+        return token;
     }
     
     protected static SecureRandom random = new SecureRandom();
@@ -78,20 +95,17 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
-    public QuizAnswers getQuizAnswers(String quizName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<QuizAnswers> getQuizAnswers(String quizName) {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Query quizsql = emq.createNativeQuery("SELECT * FROM quizAnswers WHERE name='" + quizName + "';", QuizAnswers.class);
+        List<QuizAnswers> quizAnswers = (List<QuizAnswers>) quizsql.getResultList();
+        return quizAnswers;
     }
     
     @Override
     public AnsweredQuizzes getUsersOfAnsweredQuizzes(String quizName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    
-    
-    private Users getCorrectUser(String userName, String password) {
-        Users user;
-        
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
@@ -106,15 +120,16 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         
     }
     
-    @Override
-    public String loginWithBrugerAutMod(String userName, String password) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    
     
     @Override
     public void createUser(String userName, String password, String camp, String userType, String token) throws CustomErrorMessage {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
+        
+        if (userAlreadyExcist(userName)) {
+            throw new CustomErrorMessage("Bruger findes allerede!");
+        }
         
         Users newUser = new Users();
         if (userType.equals("user")) {
@@ -126,6 +141,8 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
             } else {
                 throw new CustomErrorMessage("Det er kun tilladt for admins at oprette managers og admins");
             }
+        } else {
+            throw new CustomErrorMessage("userType skal sættes til enten 'user', 'manager' eller 'admin'");
         }
         
         newUser.setUserName(userName);
@@ -135,11 +152,6 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         newUser.setCamp(campFromDB);
         newUser.setToken("");
         persistInsert(newUser);
-    }
-    
-    @Override
-    public void editUser(Users user, String token) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
@@ -153,18 +165,39 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
-    public void addMessage(String message, String token) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void addMessage(String message, String token) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Messages msg = new Messages();
+        msg.setText(message);
+        msg.setUser(getUserFromToken(token));
+        msg.setDate(new Date());
+        persistInsert(msg);
     }
     
     @Override
-    public void addComment(String comment, Messages message, String token) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void addComment(String comment, Messages message, String token) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Comments commentObject = new Comments();
+        commentObject.setDate(new Date());
+        commentObject.setMessageId(message);
+        commentObject.setText(comment);
+        commentObject.setUser(getUserFromToken(token));
+        persistInsert(commentObject);
     }
     
     @Override
-    public ArrayList<Quiz> getQuizzes() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public List<Quiz> getQuizzes() {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Query quizsql = emq.createNativeQuery("SELECT * FROM Quiz;", Quiz.class);
+        List<Quiz> quizzes = quizsql.getResultList();
+        
+        return quizzes;
     }
     
     
@@ -201,18 +234,77 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     
     private Users getUserFromToken(String token) throws CustomErrorMessage {
         if (!token.equals("")) {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        
-        Query userdb = emq.createNativeQuery("SELECT * FROM Users WHERE token='" + token + "';", Users.class);
-        if (!(userdb.getResultList().size() == 1)) {
-            throw new CustomErrorMessage("Brugeren kunne ikke findes via token");
-        }
-        Users user = (Users) userdb.getSingleResult();
-        return user;
+            if (brugerAutModulTokens.contains(token)) {
+                
+            }
+            EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+            EntityManager emq = emf.createEntityManager();
+            
+            Query userdb = emq.createNativeQuery("SELECT * FROM Users WHERE token='" + token + "';", Users.class);
+            if (!(userdb.getResultList().size() == 1)) {
+                throw new CustomErrorMessage("Brugeren kunne ikke findes via token");
+            }
+            Users user = (Users) userdb.getSingleResult();
+            return user;
         } else {
             throw new CustomErrorMessage("Der er ikke logget ind. Token findes ikke...");
         }
     }
+    
+    @Override
+    public void setUser(Users user, String token) throws CustomErrorMessage {
+        
+        Users requestingUser = getUserFromToken(token);
+        
+        if (requestingUser.getUserType().equals("admin")) {
+            persistMerge(user);
+        } else {
+            throw new CustomErrorMessage("Det er kun admins der kan ændre i brugere");
+        }
+    }
+    
+    @Override
+    public Users getUser(String userName, String token) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        if (getUserFromToken(token).getUserType().equals("admin")) {
+            Query usersql = emq.createNativeQuery("SELECT * FROM Users WHERE userName='" + userName + "';", Users.class);
+            Users user = (Users) usersql.getSingleResult();
+            return user;
+        } else {
+            throw new CustomErrorMessage("Det er kun tilladt for admins at hente brugerprofiler");
+        }
+    }
+    
+    private boolean userAlreadyExcist(String userName) {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        
+        Query usersql = emq.createNativeQuery("SELECT * FROM Users WHERE userName='" + userName + "';", Users.class);
+        
+        if (usersql.getResultList().size() >= 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    @Override
+    public Messages getMessage(int messageId) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        Query messagesql = emq.createNativeQuery("SELECT * FROM Messages WHERE messageId='" + messageId + "';", Messages.class);
+        
+        if (messagesql.getResultList().size() == 1) {
+            Messages msg = (Messages) messagesql.getSingleResult();
+            return msg;
+        } else {
+            throw new CustomErrorMessage("Der skete en fejl under hentning af beskeden");
+        }
+    }
+    
+    
+    
     
 }
