@@ -68,7 +68,7 @@ public class Users implements Serializable {
     private Collection<Comments> commentsCollection;
     @JoinColumn(name = "camp", referencedColumnName = "campName")
     @ManyToOne(optional = false)
-    private Camps camp;
+    private Camp camp;
 
     public Users() {
     }
@@ -134,11 +134,11 @@ public class Users implements Serializable {
         this.commentsCollection = commentsCollection;
     }
 
-    public Camps getCamp() {
+    public Camp getCamp() {
         return camp;
     }
 
-    public void setCamp(Camps camp) {
+    public void setCamp(Camp camp) {
         this.camp = camp;
     }
 

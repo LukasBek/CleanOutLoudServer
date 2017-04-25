@@ -9,6 +9,7 @@
     <class>DBObjects.Users</class>
     <class>DBObjects.QuizAnswers</class>
     <class>DBObjects.Camps</class>
+    <class>DBObjects.Camp</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:mysql://col.cpqpebpi6pjl.us-west-2.rds.amazonaws.com:3306/CoL?zeroDateTimeBehavior=convertToNull"/>
       <property name="javax.persistence.jdbc.user" value="g17"/>

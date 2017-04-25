@@ -6,34 +6,30 @@
 package DBObjects;
 
 import java.io.Serializable;
-import java.util.Collection;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
  * @author Nicki
  */
 @Entity
-@Table(name = "Camps", catalog = "CoL", schema = "")
+@Table(name = "Camp")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Camps.findAll", query = "SELECT c FROM Camps c")
-    , @NamedQuery(name = "Camps.findByCampName", query = "SELECT c FROM Camps c WHERE c.campName = :campName")
-    , @NamedQuery(name = "Camps.findByGarbageWeight", query = "SELECT c FROM Camps c WHERE c.garbageWeight = :garbageWeight")
-    , @NamedQuery(name = "Camps.findByLocation", query = "SELECT c FROM Camps c WHERE c.location = :location")})
-public class Camps implements Serializable {
+    @NamedQuery(name = "Camp.findAll", query = "SELECT c FROM Camp c")
+    , @NamedQuery(name = "Camp.findByCampName", query = "SELECT c FROM Camp c WHERE c.campName = :campName")
+    , @NamedQuery(name = "Camp.findByGarbageWeight", query = "SELECT c FROM Camp c WHERE c.garbageWeight = :garbageWeight")
+    , @NamedQuery(name = "Camp.findByLocation", query = "SELECT c FROM Camp c WHERE c.location = :location")})
+public class Camp implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -49,17 +45,15 @@ public class Camps implements Serializable {
     @Size(max = 45)
     @Column(name = "location")
     private String location;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "camp")
-    private Collection<Users> usersCollection;
 
-    public Camps() {
+    public Camp() {
     }
 
-    public Camps(String campName) {
+    public Camp(String campName) {
         this.campName = campName;
     }
 
-    public Camps(String campName, int garbageWeight) {
+    public Camp(String campName, int garbageWeight) {
         this.campName = campName;
         this.garbageWeight = garbageWeight;
     }
@@ -88,15 +82,6 @@ public class Camps implements Serializable {
         this.location = location;
     }
 
-    @XmlTransient
-    public Collection<Users> getUsersCollection() {
-        return usersCollection;
-    }
-
-    public void setUsersCollection(Collection<Users> usersCollection) {
-        this.usersCollection = usersCollection;
-    }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -107,10 +92,10 @@ public class Camps implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Camps)) {
+        if (!(object instanceof Camp)) {
             return false;
         }
-        Camps other = (Camps) object;
+        Camp other = (Camp) object;
         if ((this.campName == null && other.campName != null) || (this.campName != null && !this.campName.equals(other.campName))) {
             return false;
         }
@@ -119,7 +104,7 @@ public class Camps implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.Camps[ campName=" + campName + " ]";
+        return "DBObjects.Camp[ campName=" + campName + " ]";
     }
     
 }
