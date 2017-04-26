@@ -23,6 +23,7 @@ import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,12 +55,9 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     @Override
     public String login(String userName, String password) throws loginError {
         System.out.println("username: " + userName + "\n password: " + password);
-        
         try {
-            String token = loginWithBrugerAutMod(userName, password);
-            brugerAutModulTokens.add(token);
-            return token;
-        } catch (NotBoundException | MalformedURLException  | RemoteException e ) {
+            return loginWithBrugerAutMod(userName, password);
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Kunne ikke logge ind via brugeraut.. modulet");
             String token = generateToken(userName);
@@ -77,7 +75,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         }
     }
 
-    public String loginWithBrugerAutMod(String userName, String password) throws NotBoundException, MalformedURLException, RemoteException {
+    private String loginWithBrugerAutMod(String userName, String password) throws NotBoundException, MalformedURLException, RemoteException {
         Brugeradmin ba;
         ba = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
         ba.hentBruger(userName, password);
@@ -120,7 +118,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         
-        Query campssql = emq.createNativeQuery("SELECT * FROM Camps;", Camp.class);
+        Query campssql = emq.createNativeQuery("SELECT * FROM Camp;", Camp.class);
         List<Camp> allCamps  = campssql.getResultList();
         return allCamps;
         
@@ -167,6 +165,13 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         
         Query usersql = emq.createNativeQuery("SELECT * FROM Messages;", Messages.class);
         List<Messages> allMessages  = usersql.getResultList();
+        
+//        SimpleDate
+//        
+//        for (Messages m: allMessages) {
+//            m.setDate(m.getDate().);
+//        }
+        
         return allMessages;
     }
     
@@ -174,6 +179,14 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     public void addMessage(String message, String token) throws CustomErrorMessage {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
+        
+//        String pattern = "yyyy-MM-dd-HH:mm:ss";
+////        String pattern = "EEEEE MMMMM yyyy HH:mm:ss.SSSZ";
+//SimpleDateFormat simpleDateFormat =
+//        new SimpleDateFormat(pattern);
+//
+//String date = simpleDateFormat.format(new Date());
+        
         
         Messages msg = new Messages();
         msg.setText(message);

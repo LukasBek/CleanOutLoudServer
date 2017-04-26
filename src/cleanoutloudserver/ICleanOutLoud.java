@@ -22,7 +22,7 @@ public interface ICleanOutLoud {
     @WebMethod void addCamp(String campName, String token);
     
     @WebMethod String login(String userName, String password) throws Exception;
-//    @WebMethod String loginWithBrugerAutMod(String userName, String password) throws Exception;
+
     
     @WebMethod void createUser(String userName, String password, String camp, String userType, String token) throws CustomErrorMessage;
     @WebMethod Users getUser(String userName, String token) throws CustomErrorMessage;
