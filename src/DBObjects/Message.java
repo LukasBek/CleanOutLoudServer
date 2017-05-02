@@ -75,7 +75,6 @@ public class Message implements Serializable {
         this.messageId = messageId;
         this.text = text;
         this.date = date;
-        
     }
 
     public Integer getMessageId() {

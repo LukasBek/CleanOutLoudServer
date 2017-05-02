@@ -57,7 +57,7 @@ public class User implements Serializable {
     private String token;
     @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 7)
+    @Size(min = 1, max = 5)
     @Column(name = "userType")
     private String userType;
     @OneToMany(mappedBy = "user")

@@ -47,7 +47,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     
     
     @Override
-    public String login(String userName, String password) throws loginError {
+    public String login(String userName, String password) throws CustomErrorMessage {
         System.out.println("username: " + userName + "\n password: " + password);
         try {
             return loginWithBrugerAutMod(userName, password);
@@ -63,8 +63,8 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
                 persistMerge(user);
                 return token;
             } else {
-                System.out.println("Kunne ikke ligge ind via CoL");
-                throw new loginError("Kunne ikke logge ind via brugeradmin modulet eller CoL");
+                System.out.println("Kunne ikke logge ind via CoL");
+                throw new CustomErrorMessage("Kunne ikke logge ind via brugeradmin modulet eller CoL");
             }
         }
     }
@@ -156,13 +156,18 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         persistInsert(newCamp);
     }
     
-    private Camp getCamp(String campName) {
+    private Camp getCamp(String campName) throws CustomErrorMessage {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
-        
+        try {
         Query campssql = emq.createNativeQuery("SELECT * FROM Camp WHERE campName='" + campName + "';", Camp.class);
         Camp camp = (Camp) campssql.getSingleResult();
         return camp;
+        } catch (Exception e) {
+            throw new CustomErrorMessage("Der fandtes ingen camp med navnet: " + campName);
+        }
+        
+        
     }
     
     
@@ -171,7 +176,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         
-        if (userAlreadyExcist(userName)) {
+        if (userAlreadyExist(userName)) {
             throw new CustomErrorMessage("Brugernavn findes allerede!");
         }
         
@@ -204,12 +209,29 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
+    public void setGarbage(String campName, Float weight,  String token) throws CustomErrorMessage {
+       if (getUserFromToken(token).getUserType().equals("admin")) {
+           Camp camp = getCamp(campName);
+           camp.setGarbageWeight(camp.getGarbageWeight() + weight);
+           persistMerge(camp);
+       } else {
+           throw new CustomErrorMessage("Du skal være admin for at kunne tilføje skrald til en camp");
+       }
+    }
+    
+    @Override
     public List<Message> getWallMessages() {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         
         Query messagesql = emq.createNativeQuery("SELECT * FROM Message;", Message.class);
         List<Message> allMessages  = messagesql.getResultList();
+        
+        for (Message m: allMessages) {
+            m.getUser().setPassword(null);
+            m.getUser().setToken(null);
+            m.getUser().setUserType(null);
+        }
         
         return allMessages;
     }
@@ -377,7 +399,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         }
     }
     
-    private boolean userAlreadyExcist(String userName) {
+    private boolean userAlreadyExist(String userName) {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         
@@ -443,5 +465,7 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     public Quiz addQuizAnswers(String quizName) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    
     
 }

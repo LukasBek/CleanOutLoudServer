@@ -45,7 +45,7 @@ public class Camp implements Serializable {
     @Basic(optional = false)
     @NotNull
     @Column(name = "garbageWeight")
-    private int garbageWeight;
+    private float garbageWeight;
     @Size(max = 45)
     @Column(name = "location")
     private String location;
@@ -59,7 +59,7 @@ public class Camp implements Serializable {
         this.campName = campName;
     }
 
-    public Camp(String campName, int garbageWeight) {
+    public Camp(String campName, float garbageWeight) {
         this.campName = campName;
         this.garbageWeight = garbageWeight;
     }
@@ -72,11 +72,11 @@ public class Camp implements Serializable {
         this.campName = campName;
     }
 
-    public int getGarbageWeight() {
+    public float getGarbageWeight() {
         return garbageWeight;
     }
 
-    public void setGarbageWeight(int garbageWeight) {
+    public void setGarbageWeight(float garbageWeight) {
         this.garbageWeight = garbageWeight;
     }
 

@@ -21,6 +21,7 @@ public interface ICleanOutLoud {
     @WebMethod void addCamp(String campName, String token);
     @WebMethod void deleteCamp(String campName, String token);
     
+    @WebMethod void setGarbage(String campName, Float weight,  String token) throws CustomErrorMessage;
     
     @WebMethod String login(String userName, String password) throws Exception;
 
