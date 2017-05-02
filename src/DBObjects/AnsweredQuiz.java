@@ -23,18 +23,18 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Nicki
  */
 @Entity
-@Table(name = "AnsweredQuizzes", catalog = "CoL", schema = "")
+@Table(name = "AnsweredQuiz")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "AnsweredQuizzes.findAll", query = "SELECT a FROM AnsweredQuizzes a")
-    , @NamedQuery(name = "AnsweredQuizzes.findByName", query = "SELECT a FROM AnsweredQuizzes a WHERE a.answeredQuizzesPK.name = :name")
-    , @NamedQuery(name = "AnsweredQuizzes.findByUserName", query = "SELECT a FROM AnsweredQuizzes a WHERE a.answeredQuizzesPK.userName = :userName")
-    , @NamedQuery(name = "AnsweredQuizzes.findByAnsweredCorrect", query = "SELECT a FROM AnsweredQuizzes a WHERE a.answeredCorrect = :answeredCorrect")})
-public class AnsweredQuizzes implements Serializable {
+    @NamedQuery(name = "AnsweredQuiz.findAll", query = "SELECT a FROM AnsweredQuiz a")
+    , @NamedQuery(name = "AnsweredQuiz.findByName", query = "SELECT a FROM AnsweredQuiz a WHERE a.answeredQuizPK.name = :name")
+    , @NamedQuery(name = "AnsweredQuiz.findByUserName", query = "SELECT a FROM AnsweredQuiz a WHERE a.answeredQuizPK.userName = :userName")
+    , @NamedQuery(name = "AnsweredQuiz.findByAnsweredCorrect", query = "SELECT a FROM AnsweredQuiz a WHERE a.answeredCorrect = :answeredCorrect")})
+public class AnsweredQuiz implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @EmbeddedId
-    protected AnsweredQuizzesPK answeredQuizzesPK;
+    protected AnsweredQuizPK answeredQuizPK;
     @Basic(optional = false)
     @NotNull
     @Column(name = "answeredCorrect")
@@ -44,30 +44,30 @@ public class AnsweredQuizzes implements Serializable {
     private Quiz quiz;
     @JoinColumn(name = "userName", referencedColumnName = "userName", insertable = false, updatable = false)
     @ManyToOne(optional = false)
-    private Users users;
+    private User user;
 
-    public AnsweredQuizzes() {
+    public AnsweredQuiz() {
     }
 
-    public AnsweredQuizzes(AnsweredQuizzesPK answeredQuizzesPK) {
-        this.answeredQuizzesPK = answeredQuizzesPK;
+    public AnsweredQuiz(AnsweredQuizPK answeredQuizPK) {
+        this.answeredQuizPK = answeredQuizPK;
     }
 
-    public AnsweredQuizzes(AnsweredQuizzesPK answeredQuizzesPK, boolean answeredCorrect) {
-        this.answeredQuizzesPK = answeredQuizzesPK;
+    public AnsweredQuiz(AnsweredQuizPK answeredQuizPK, boolean answeredCorrect) {
+        this.answeredQuizPK = answeredQuizPK;
         this.answeredCorrect = answeredCorrect;
     }
 
-    public AnsweredQuizzes(String name, String userName) {
-        this.answeredQuizzesPK = new AnsweredQuizzesPK(name, userName);
+    public AnsweredQuiz(String name, String userName) {
+        this.answeredQuizPK = new AnsweredQuizPK(name, userName);
     }
 
-    public AnsweredQuizzesPK getAnsweredQuizzesPK() {
-        return answeredQuizzesPK;
+    public AnsweredQuizPK getAnsweredQuizPK() {
+        return answeredQuizPK;
     }
 
-    public void setAnsweredQuizzesPK(AnsweredQuizzesPK answeredQuizzesPK) {
-        this.answeredQuizzesPK = answeredQuizzesPK;
+    public void setAnsweredQuizPK(AnsweredQuizPK answeredQuizPK) {
+        this.answeredQuizPK = answeredQuizPK;
     }
 
     public boolean getAnsweredCorrect() {
@@ -86,29 +86,29 @@ public class AnsweredQuizzes implements Serializable {
         this.quiz = quiz;
     }
 
-    public Users getUsers() {
-        return users;
+    public User getUser() {
+        return user;
     }
 
-    public void setUsers(Users users) {
-        this.users = users;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     @Override
     public int hashCode() {
         int hash = 0;
-        hash += (answeredQuizzesPK != null ? answeredQuizzesPK.hashCode() : 0);
+        hash += (answeredQuizPK != null ? answeredQuizPK.hashCode() : 0);
         return hash;
     }
 
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof AnsweredQuizzes)) {
+        if (!(object instanceof AnsweredQuiz)) {
             return false;
         }
-        AnsweredQuizzes other = (AnsweredQuizzes) object;
-        if ((this.answeredQuizzesPK == null && other.answeredQuizzesPK != null) || (this.answeredQuizzesPK != null && !this.answeredQuizzesPK.equals(other.answeredQuizzesPK))) {
+        AnsweredQuiz other = (AnsweredQuiz) object;
+        if ((this.answeredQuizPK == null && other.answeredQuizPK != null) || (this.answeredQuizPK != null && !this.answeredQuizPK.equals(other.answeredQuizPK))) {
             return false;
         }
         return true;
@@ -116,7 +116,7 @@ public class AnsweredQuizzes implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.AnsweredQuizzes[ answeredQuizzesPK=" + answeredQuizzesPK + " ]";
+        return "DBObjects.AnsweredQuiz[ answeredQuizPK=" + answeredQuizPK + " ]";
     }
     
 }

@@ -6,16 +6,20 @@
 package DBObjects;
 
 import java.io.Serializable;
+import java.util.Collection;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -45,6 +49,8 @@ public class Camp implements Serializable {
     @Size(max = 45)
     @Column(name = "location")
     private String location;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "camp")
+    private Collection<User> userCollection;
 
     public Camp() {
     }
@@ -80,6 +86,15 @@ public class Camp implements Serializable {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    @XmlTransient
+    public Collection<User> getUserCollection() {
+        return userCollection;
+    }
+
+    public void setUserCollection(Collection<User> userCollection) {
+        this.userCollection = userCollection;
     }
 
     @Override

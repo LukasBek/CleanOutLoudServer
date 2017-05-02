@@ -10,6 +10,8 @@ import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -18,7 +20,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -27,19 +28,19 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Nicki
  */
 @Entity
-@Table(name = "Comments", catalog = "CoL", schema = "")
+@Table(name = "Comment")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Comments.findAll", query = "SELECT c FROM Comments c")
-    , @NamedQuery(name = "Comments.findByCommentsId", query = "SELECT c FROM Comments c WHERE c.commentsId = :commentsId")
-    , @NamedQuery(name = "Comments.findByText", query = "SELECT c FROM Comments c WHERE c.text = :text")
-    , @NamedQuery(name = "Comments.findByDate", query = "SELECT c FROM Comments c WHERE c.date = :date")})
-public class Comments implements Serializable {
+    @NamedQuery(name = "Comment.findAll", query = "SELECT c FROM Comment c")
+    , @NamedQuery(name = "Comment.findByCommentsId", query = "SELECT c FROM Comment c WHERE c.commentsId = :commentsId")
+    , @NamedQuery(name = "Comment.findByText", query = "SELECT c FROM Comment c WHERE c.text = :text")
+    , @NamedQuery(name = "Comment.findByDate", query = "SELECT c FROM Comment c WHERE c.date = :date")})
+public class Comment implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
-    @NotNull
     @Column(name = "commentsId")
     private Integer commentsId;
     @Size(max = 200)
@@ -50,15 +51,15 @@ public class Comments implements Serializable {
     private Date date;
     @JoinColumn(name = "messageId", referencedColumnName = "messageId")
     @ManyToOne(optional = false)
-    private Messages messageId;
+    private Message messageId;
     @JoinColumn(name = "user", referencedColumnName = "userName")
     @ManyToOne
-    private Users user;
+    private User user;
 
-    public Comments() {
+    public Comment() {
     }
 
-    public Comments(Integer commentsId) {
+    public Comment(Integer commentsId) {
         this.commentsId = commentsId;
     }
 
@@ -86,19 +87,19 @@ public class Comments implements Serializable {
         this.date = date;
     }
 
-    public Messages getMessageId() {
+    public Message getMessageId() {
         return messageId;
     }
 
-    public void setMessageId(Messages messageId) {
+    public void setMessageId(Message messageId) {
         this.messageId = messageId;
     }
 
-    public Users getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(Users user) {
+    public void setUser(User user) {
         this.user = user;
     }
 
@@ -112,10 +113,10 @@ public class Comments implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Comments)) {
+        if (!(object instanceof Comment)) {
             return false;
         }
-        Comments other = (Comments) object;
+        Comment other = (Comment) object;
         if ((this.commentsId == null && other.commentsId != null) || (this.commentsId != null && !this.commentsId.equals(other.commentsId))) {
             return false;
         }
@@ -124,7 +125,7 @@ public class Comments implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.Comments[ commentsId=" + commentsId + " ]";
+        return "DBObjects.Comment[ commentsId=" + commentsId + " ]";
     }
     
 }

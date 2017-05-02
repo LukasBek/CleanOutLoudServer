@@ -17,7 +17,7 @@ import javax.validation.constraints.Size;
  * @author Nicki
  */
 @Embeddable
-public class AnsweredQuizzesPK implements Serializable {
+public class AnsweredQuizPK implements Serializable {
 
     @Basic(optional = false)
     @NotNull
@@ -30,10 +30,10 @@ public class AnsweredQuizzesPK implements Serializable {
     @Column(name = "userName")
     private String userName;
 
-    public AnsweredQuizzesPK() {
+    public AnsweredQuizPK() {
     }
 
-    public AnsweredQuizzesPK(String name, String userName) {
+    public AnsweredQuizPK(String name, String userName) {
         this.name = name;
         this.userName = userName;
     }
@@ -65,10 +65,10 @@ public class AnsweredQuizzesPK implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof AnsweredQuizzesPK)) {
+        if (!(object instanceof AnsweredQuizPK)) {
             return false;
         }
-        AnsweredQuizzesPK other = (AnsweredQuizzesPK) object;
+        AnsweredQuizPK other = (AnsweredQuizPK) object;
         if ((this.name == null && other.name != null) || (this.name != null && !this.name.equals(other.name))) {
             return false;
         }
@@ -80,7 +80,7 @@ public class AnsweredQuizzesPK implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.AnsweredQuizzesPK[ name=" + name + ", userName=" + userName + " ]";
+        return "DBObjects.AnsweredQuizPK[ name=" + name + ", userName=" + userName + " ]";
     }
     
 }

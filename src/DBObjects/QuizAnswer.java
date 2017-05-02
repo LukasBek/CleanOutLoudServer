@@ -24,14 +24,14 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Nicki
  */
 @Entity
-@Table(name = "QuizAnswers", catalog = "CoL", schema = "")
+@Table(name = "QuizAnswer")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "QuizAnswers.findAll", query = "SELECT q FROM QuizAnswers q")
-    , @NamedQuery(name = "QuizAnswers.findById", query = "SELECT q FROM QuizAnswers q WHERE q.id = :id")
-    , @NamedQuery(name = "QuizAnswers.findByText", query = "SELECT q FROM QuizAnswers q WHERE q.text = :text")
-    , @NamedQuery(name = "QuizAnswers.findByIsCorrect", query = "SELECT q FROM QuizAnswers q WHERE q.isCorrect = :isCorrect")})
-public class QuizAnswers implements Serializable {
+    @NamedQuery(name = "QuizAnswer.findAll", query = "SELECT q FROM QuizAnswer q")
+    , @NamedQuery(name = "QuizAnswer.findById", query = "SELECT q FROM QuizAnswer q WHERE q.id = :id")
+    , @NamedQuery(name = "QuizAnswer.findByText", query = "SELECT q FROM QuizAnswer q WHERE q.text = :text")
+    , @NamedQuery(name = "QuizAnswer.findByIsCorrect", query = "SELECT q FROM QuizAnswer q WHERE q.isCorrect = :isCorrect")})
+public class QuizAnswer implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -50,14 +50,14 @@ public class QuizAnswers implements Serializable {
     @ManyToOne
     private Quiz name;
 
-    public QuizAnswers() {
+    public QuizAnswer() {
     }
 
-    public QuizAnswers(Integer id) {
+    public QuizAnswer(Integer id) {
         this.id = id;
     }
 
-    public QuizAnswers(Integer id, boolean isCorrect) {
+    public QuizAnswer(Integer id, boolean isCorrect) {
         this.id = id;
         this.isCorrect = isCorrect;
     }
@@ -104,10 +104,10 @@ public class QuizAnswers implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof QuizAnswers)) {
+        if (!(object instanceof QuizAnswer)) {
             return false;
         }
-        QuizAnswers other = (QuizAnswers) object;
+        QuizAnswer other = (QuizAnswer) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -116,7 +116,7 @@ public class QuizAnswers implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.QuizAnswers[ id=" + id + " ]";
+        return "DBObjects.QuizAnswer[ id=" + id + " ]";
     }
     
 }

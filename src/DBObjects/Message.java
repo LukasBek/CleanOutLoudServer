@@ -33,14 +33,14 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author Nicki
  */
 @Entity
-@Table(name = "Messages", catalog = "CoL", schema = "")
+@Table(name = "Message")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Messages.findAll", query = "SELECT m FROM Messages m")
-    , @NamedQuery(name = "Messages.findByMessageId", query = "SELECT m FROM Messages m WHERE m.messageId = :messageId")
-    , @NamedQuery(name = "Messages.findByText", query = "SELECT m FROM Messages m WHERE m.text = :text")
-    , @NamedQuery(name = "Messages.findByDate", query = "SELECT m FROM Messages m WHERE m.date = :date")})
-public class Messages implements Serializable {
+    @NamedQuery(name = "Message.findAll", query = "SELECT m FROM Message m")
+    , @NamedQuery(name = "Message.findByMessageId", query = "SELECT m FROM Message m WHERE m.messageId = :messageId")
+    , @NamedQuery(name = "Message.findByText", query = "SELECT m FROM Message m WHERE m.text = :text")
+    , @NamedQuery(name = "Message.findByDate", query = "SELECT m FROM Message m WHERE m.date = :date")})
+public class Message implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -58,23 +58,24 @@ public class Messages implements Serializable {
     @Column(name = "date")
     @Temporal(TemporalType.TIMESTAMP)
     private Date date;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageId")
+    private Collection<Comment> commentCollection;
     @JoinColumn(name = "user", referencedColumnName = "userName")
     @ManyToOne
-    private Users user;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "messageId")
-    private Collection<Comments> commentsCollection;
+    private User user;
 
-    public Messages() {
+    public Message() {
     }
 
-    public Messages(Integer messageId) {
+    public Message(Integer messageId) {
         this.messageId = messageId;
     }
 
-    public Messages(Integer messageId, String text, Date date) {
+    public Message(Integer messageId, String text, Date date) {
         this.messageId = messageId;
         this.text = text;
         this.date = date;
+        
     }
 
     public Integer getMessageId() {
@@ -101,21 +102,21 @@ public class Messages implements Serializable {
         this.date = date;
     }
 
-    public Users getUser() {
+    @XmlTransient
+    public Collection<Comment> getCommentCollection() {
+        return commentCollection;
+    }
+
+    public void setCommentCollection(Collection<Comment> commentCollection) {
+        this.commentCollection = commentCollection;
+    }
+
+    public User getUser() {
         return user;
     }
 
-    public void setUser(Users user) {
+    public void setUser(User user) {
         this.user = user;
-    }
-
-    @XmlTransient
-    public Collection<Comments> getCommentsCollection() {
-        return commentsCollection;
-    }
-
-    public void setCommentsCollection(Collection<Comments> commentsCollection) {
-        this.commentsCollection = commentsCollection;
     }
 
     @Override
@@ -128,10 +129,10 @@ public class Messages implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Messages)) {
+        if (!(object instanceof Message)) {
             return false;
         }
-        Messages other = (Messages) object;
+        Message other = (Message) object;
         if ((this.messageId == null && other.messageId != null) || (this.messageId != null && !this.messageId.equals(other.messageId))) {
             return false;
         }
@@ -140,9 +141,7 @@ public class Messages implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.Messages[ messageId=" + messageId + " ]";
+        return "DBObjects.Message[ messageId=" + messageId + " ]";
     }
-
-    
     
 }

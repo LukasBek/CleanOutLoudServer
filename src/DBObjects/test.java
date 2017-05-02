@@ -24,9 +24,9 @@ public class test {
 //         Query allUsersq = emq.createNativeQuery("select * from Users", Users.class);
          
          
-Query user = emq.createNativeQuery("SELECT * FROM Users WHERE userName='" + "nick" + "' AND password='" + "nicki12345" +"';", Users.class);
+Query user = emq.createNativeQuery("SELECT * FROM User WHERE userName='" + "nick" + "' AND password='" + "nicki12345" +"';", User.class);
                 
-List<Users> userss = user.getResultList();
+List<User> userss = user.getResultList();
 
 try {
     System.out.println(userss.get(0).getUserName());

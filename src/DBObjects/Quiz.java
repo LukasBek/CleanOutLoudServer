@@ -26,7 +26,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author Nicki
  */
 @Entity
-@Table(name = "Quiz", catalog = "CoL", schema = "")
+@Table(name = "Quiz")
 @XmlRootElement
 @NamedQueries({
     @NamedQuery(name = "Quiz.findAll", query = "SELECT q FROM Quiz q")
@@ -48,10 +48,10 @@ public class Quiz implements Serializable {
     @Size(max = 200)
     @Column(name = "funFact")
     private String funFact;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "quiz")
-    private Collection<AnsweredQuizzes> answeredQuizzesCollection;
     @OneToMany(mappedBy = "name")
-    private Collection<QuizAnswers> quizAnswersCollection;
+    private Collection<QuizAnswer> quizAnswerCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "quiz")
+    private Collection<AnsweredQuiz> answeredQuizCollection;
 
     public Quiz() {
     }
@@ -85,21 +85,21 @@ public class Quiz implements Serializable {
     }
 
     @XmlTransient
-    public Collection<AnsweredQuizzes> getAnsweredQuizzesCollection() {
-        return answeredQuizzesCollection;
+    public Collection<QuizAnswer> getQuizAnswerCollection() {
+        return quizAnswerCollection;
     }
 
-    public void setAnsweredQuizzesCollection(Collection<AnsweredQuizzes> answeredQuizzesCollection) {
-        this.answeredQuizzesCollection = answeredQuizzesCollection;
+    public void setQuizAnswerCollection(Collection<QuizAnswer> quizAnswerCollection) {
+        this.quizAnswerCollection = quizAnswerCollection;
     }
 
     @XmlTransient
-    public Collection<QuizAnswers> getQuizAnswersCollection() {
-        return quizAnswersCollection;
+    public Collection<AnsweredQuiz> getAnsweredQuizCollection() {
+        return answeredQuizCollection;
     }
 
-    public void setQuizAnswersCollection(Collection<QuizAnswers> quizAnswersCollection) {
-        this.quizAnswersCollection = quizAnswersCollection;
+    public void setAnsweredQuizCollection(Collection<AnsweredQuiz> answeredQuizCollection) {
+        this.answeredQuizCollection = answeredQuizCollection;
     }
 
     @Override

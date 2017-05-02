@@ -28,20 +28,15 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author Nicki
  */
 @Entity
-@Table(name = "Users", catalog = "CoL", schema = "")
+@Table(name = "User")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Users.findAll", query = "SELECT u FROM Users u")
-    , @NamedQuery(name = "Users.findByUserName", query = "SELECT u FROM Users u WHERE u.userName = :userName")
-    , @NamedQuery(name = "Users.findByPassword", query = "SELECT u FROM Users u WHERE u.password = :password")
-    , @NamedQuery(name = "Users.findByUserType", query = "SELECT u FROM Users u WHERE u.userType = :userType")})
-public class Users implements Serializable {
-
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 45)
-    @Column(name = "token")
-    private String token;
+    @NamedQuery(name = "User.findAll", query = "SELECT u FROM User u")
+    , @NamedQuery(name = "User.findByUserName", query = "SELECT u FROM User u WHERE u.userName = :userName")
+    , @NamedQuery(name = "User.findByPassword", query = "SELECT u FROM User u WHERE u.password = :password")
+    , @NamedQuery(name = "User.findByToken", query = "SELECT u FROM User u WHERE u.token = :token")
+    , @NamedQuery(name = "User.findByUserType", query = "SELECT u FROM User u WHERE u.userType = :userType")})
+public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -57,29 +52,35 @@ public class Users implements Serializable {
     private String password;
     @Basic(optional = false)
     @NotNull
+    @Size(min = 1, max = 45)
+    @Column(name = "token")
+    private String token;
+    @Basic(optional = false)
+    @NotNull
     @Size(min = 1, max = 7)
     @Column(name = "userType")
     private String userType;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "users")
-    private Collection<AnsweredQuizzes> answeredQuizzesCollection;
     @OneToMany(mappedBy = "user")
-    private Collection<Messages> messagesCollection;
-    @OneToMany(mappedBy = "user")
-    private Collection<Comments> commentsCollection;
+    private Collection<Comment> commentCollection;
     @JoinColumn(name = "camp", referencedColumnName = "campName")
     @ManyToOne(optional = false)
     private Camp camp;
+    @OneToMany(mappedBy = "user")
+    private Collection<Message> messageCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    private Collection<AnsweredQuiz> answeredQuizCollection;
 
-    public Users() {
+    public User() {
     }
 
-    public Users(String userName) {
+    public User(String userName) {
         this.userName = userName;
     }
 
-    public Users(String userName, String password, String userType) {
+    public User(String userName, String password, String token, String userType) {
         this.userName = userName;
         this.password = password;
+        this.token = token;
         this.userType = userType;
     }
 
@@ -99,6 +100,14 @@ public class Users implements Serializable {
         this.password = password;
     }
 
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     public String getUserType() {
         return userType;
     }
@@ -108,30 +117,12 @@ public class Users implements Serializable {
     }
 
     @XmlTransient
-    public Collection<AnsweredQuizzes> getAnsweredQuizzesCollection() {
-        return answeredQuizzesCollection;
+    public Collection<Comment> getCommentCollection() {
+        return commentCollection;
     }
 
-    public void setAnsweredQuizzesCollection(Collection<AnsweredQuizzes> answeredQuizzesCollection) {
-        this.answeredQuizzesCollection = answeredQuizzesCollection;
-    }
-
-    @XmlTransient
-    public Collection<Messages> getMessagesCollection() {
-        return messagesCollection;
-    }
-
-    public void setMessagesCollection(Collection<Messages> messagesCollection) {
-        this.messagesCollection = messagesCollection;
-    }
-
-    @XmlTransient
-    public Collection<Comments> getCommentsCollection() {
-        return commentsCollection;
-    }
-
-    public void setCommentsCollection(Collection<Comments> commentsCollection) {
-        this.commentsCollection = commentsCollection;
+    public void setCommentCollection(Collection<Comment> commentCollection) {
+        this.commentCollection = commentCollection;
     }
 
     public Camp getCamp() {
@@ -140,6 +131,24 @@ public class Users implements Serializable {
 
     public void setCamp(Camp camp) {
         this.camp = camp;
+    }
+
+    @XmlTransient
+    public Collection<Message> getMessageCollection() {
+        return messageCollection;
+    }
+
+    public void setMessageCollection(Collection<Message> messageCollection) {
+        this.messageCollection = messageCollection;
+    }
+
+    @XmlTransient
+    public Collection<AnsweredQuiz> getAnsweredQuizCollection() {
+        return answeredQuizCollection;
+    }
+
+    public void setAnsweredQuizCollection(Collection<AnsweredQuiz> answeredQuizCollection) {
+        this.answeredQuizCollection = answeredQuizCollection;
     }
 
     @Override
@@ -152,10 +161,10 @@ public class Users implements Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Users)) {
+        if (!(object instanceof User)) {
             return false;
         }
-        Users other = (Users) object;
+        User other = (User) object;
         if ((this.userName == null && other.userName != null) || (this.userName != null && !this.userName.equals(other.userName))) {
             return false;
         }
@@ -164,15 +173,7 @@ public class Users implements Serializable {
 
     @Override
     public String toString() {
-        return "DBObjects.Users[ userName=" + userName + " ]";
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
+        return "DBObjects.User[ userName=" + userName + " ]";
     }
     
 }
