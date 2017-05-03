@@ -23,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.jws.WebService;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -89,26 +87,6 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
-    public List<QuizAnswer> getQuizAnswers(String quizName) {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        
-        Query quizsql = emq.createNativeQuery("SELECT * FROM quizAnswer WHERE name='" + quizName + "';", QuizAnswer.class);
-        List<QuizAnswer> quizAnswers = (List<QuizAnswer>) quizsql.getResultList();
-        return quizAnswers;
-    }
-    
-    @Override
-    public List<AnsweredQuiz> getUsersOfAnsweredQuizzes(String quizName) {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        
-        Query quizAnswerssql = emq.createNativeQuery("SELECT * FROM AnsweredQuiz WHERE name='" + quizName + "';", AnsweredQuiz.class);
-        List<AnsweredQuiz> ansQuizzes = quizAnswerssql.getResultList();
-        return ansQuizzes;
-    }
-    
-    @Override
     public List<Camp> getCamps() {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
@@ -149,27 +127,39 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     @Override
-    public void addCamp(String campName, String token) {
+    public void addCamp(String campName, String token) throws CustomErrorMessage {
+        if (getUserFromToken(token).getUserType().equals("admin")) {
         Camp newCamp = new Camp();
         newCamp.setCampName(campName);
         newCamp.setGarbageWeight(0);
         persistInsert(newCamp);
+        } else {
+            throw new CustomErrorMessage("Det er kun tilladt for admins at oprette nye camps");
+        }
     }
     
     private Camp getCamp(String campName) throws CustomErrorMessage {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         try {
-        Query campssql = emq.createNativeQuery("SELECT * FROM Camp WHERE campName='" + campName + "';", Camp.class);
-        Camp camp = (Camp) campssql.getSingleResult();
-        return camp;
+            Query campssql = emq.createNativeQuery("SELECT * FROM Camp WHERE campName='" + campName + "';", Camp.class);
+            Camp camp = (Camp) campssql.getSingleResult();
+            return camp;
         } catch (Exception e) {
             throw new CustomErrorMessage("Der fandtes ingen camp med navnet: " + campName);
         }
-        
-        
     }
     
+    @Override
+    public void setGarbage(String campName, Float weight,  String token) throws CustomErrorMessage {
+        if (getUserFromToken(token).getUserType().equals("admin")) {
+            Camp camp = getCamp(campName);
+            camp.setGarbageWeight(camp.getGarbageWeight() + weight);
+            persistMerge(camp);
+        } else {
+            throw new CustomErrorMessage("Du skal være admin for at kunne tilføje skrald til en camp");
+        }
+    }
     
     @Override
     public void createUser(String userName, String password, String camp, String userType, String token) throws CustomErrorMessage {
@@ -205,18 +195,6 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         }catch (Exception e) {
             throw new CustomErrorMessage("Navnet på campen stemmer ikke overens med nogle camps i databasen");
         }
-        
-    }
-    
-    @Override
-    public void setGarbage(String campName, Float weight,  String token) throws CustomErrorMessage {
-       if (getUserFromToken(token).getUserType().equals("admin")) {
-           Camp camp = getCamp(campName);
-           camp.setGarbageWeight(camp.getGarbageWeight() + weight);
-           persistMerge(camp);
-       } else {
-           throw new CustomErrorMessage("Du skal være admin for at kunne tilføje skrald til en camp");
-       }
     }
     
     @Override
@@ -228,12 +206,25 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         List<Message> allMessages  = messagesql.getResultList();
         
         for (Message m: allMessages) {
-            m.getUser().setPassword(null);
-            m.getUser().setToken(null);
-            m.getUser().setUserType(null);
+            String str = m.getUser().getUserName() + " fra camp " + m.getUser().getCamp().getCampName() + ": \n\r" + m.getText();
+            m.setText(str.substring(0,1).toUpperCase() + str.substring(1));
+            m.setUser(null);
         }
-        
         return allMessages;
+    }
+    
+    @Override
+    public Message getMessage(int messageId) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        Query messagesql = emq.createNativeQuery("SELECT * FROM Message WHERE messageId='" + messageId + "';", Message.class);
+        
+        if (messagesql.getResultList().size() == 1) {
+            Message msg = (Message) messagesql.getSingleResult();
+            return msg;
+        } else {
+            throw new CustomErrorMessage("Der skete en fejl under hentning af beskeden. Kunne ikke findes i databasen");
+        }
     }
     
     @Override
@@ -262,44 +253,105 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
     }
     
     
-    @Override
-    public Comment getComment(int commentId, String token) throws CustomErrorMessage {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        
-        Query commentsql = emq.createNativeQuery("SELECT * FROM Comment WHERE commentsid='" + commentId + "';", Comment.class);
-        if (commentsql.getResultList().size() == 1){
-            Comment comment = (Comment) commentsql.getSingleResult();
-            return comment;
-        } else {
-            throw new CustomErrorMessage("Kommentaren kunne ikke findes");
-        }
-    }
+    
+//    private Comment getComment(int commentId, String token) throws CustomErrorMessage {
+//        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+//        EntityManager emq = emf.createEntityManager();
+//        
+//        Query commentsql = emq.createNativeQuery("SELECT * FROM Comment WHERE commentsid='" + commentId + "';", Comment.class);
+//        if (commentsql.getResultList().size() == 1){
+//            Comment comment = (Comment) commentsql.getSingleResult();
+//            return comment;
+//        } else {
+//            throw new CustomErrorMessage("Kommentaren kunne ikke findes");
+//        }
+//    }
     
     @Override
-    public List<Comment> getCommentsForMessage(int messageId, String token) throws CustomErrorMessage {
+    public List<Comment> getCommentsForMessage(int messageId) throws CustomErrorMessage {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         
         Query commentsql = emq.createNativeQuery("SELECT * FROM Comment WHERE messageId='" + messageId + "';", Comment.class);
+        List<Comment> comments = commentsql.getResultList();
         
-        List<Comment> comments = (List<Comment>) commentsql.getResultList();
+        for (Comment c: comments) {
+            String str = c.getUser().getUserName() + " fra camp " + c.getUser().getCamp().getCampName() + ": \n\r" + c.getText();
+            
+            c.setText(str.substring(0,1).toUpperCase() + str.substring(1));
+            c.setUser(null);
+        }
         return comments;
     }
     
-    
+    private User getUserFromToken(String token) throws CustomErrorMessage {
+        if (!token.equals("")) {
+            synchronized(brugerAutModulTokens) {
+                if (brugerAutModulTokens.contains(token)) {
+                    User brugerAutUser = new User();
+                    brugerAutUser.setToken(token);
+                    brugerAutUser.setUserName(token.substring(0, token.indexOf(':')));
+                    brugerAutUser.setUserType("admin");
+                    return brugerAutUser;
+                }
+            }
+            EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+            EntityManager emq = emf.createEntityManager();
+            
+            Query userdb = emq.createNativeQuery("SELECT * FROM User WHERE token='" + token + "';", User.class);
+            if (!(userdb.getResultList().size() == 1)) {
+                throw new CustomErrorMessage("Der benyttes et ugyldigt token. Log ind igen og få det rigtige token");
+            }
+            User user = (User) userdb.getSingleResult();
+            return user;
+        } else {
+            throw new CustomErrorMessage("Der er ikke logget ind. Token er tomt");
+        }
+    }
     
     @Override
-    public List<Quiz> getQuizzes() {
+    public void setUser(User user, String token) throws CustomErrorMessage {
+        
+        User requestingUser = getUserFromToken(token);
+        
+        if (requestingUser.getUserType().equals("admin")) {
+            persistMerge(user);
+        } else {
+            throw new CustomErrorMessage("Det er kun admins der kan ændre i brugere");
+        }
+    }
+    
+    @Override
+    public User getUser(String userName, String token) throws CustomErrorMessage {
+        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+        EntityManager emq = emf.createEntityManager();
+        User reqUser = getUserFromToken(token);
+        if (reqUser.getUserName().equals(userName) || reqUser.getUserType().equals("admin")) {
+            Query usersql = emq.createNativeQuery("SELECT * FROM User WHERE userName='" + userName + "';", User.class);
+            User user = (User) usersql.getSingleResult();
+            System.out.println("NICKI TEST: " + user.getCamp().getCampName());
+            return user;
+        } else {
+            throw new CustomErrorMessage("Det er kun tilladt for admins at hente brugerprofiler");
+        }
+    }
+    
+    private boolean userAlreadyExist(String userName) {
         EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
         EntityManager emq = emf.createEntityManager();
         
-        Query quizsql = emq.createNativeQuery("SELECT * FROM Quiz;", Quiz.class);
-        List<Quiz> quizzes = quizsql.getResultList();
+        Query usersql = emq.createNativeQuery("SELECT * FROM User WHERE userName='" + userName + "';", User.class);
         
-        return quizzes;
+        if (usersql.getResultList().size() >= 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
+    
+    //---------------------------------------------------------------------------------------
+    //database persist
     
     public synchronized void persistInsert(Object object) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
@@ -348,124 +400,99 @@ public class CleanOutLoudImpl implements ICleanOutLoud{
         
     }
     
-    private User getUserFromToken(String token) throws CustomErrorMessage {
-        if (!token.equals("")) {
-            synchronized(brugerAutModulTokens) {
-                if (brugerAutModulTokens.contains(token)) {
-                    User brugerAutUser = new User();
-                    brugerAutUser.setToken(token);
-                    brugerAutUser.setUserName(token.substring(0, token.indexOf(':')));
-                    brugerAutUser.setUserType("admin");
-                    return brugerAutUser;
-                }
-            }
-            EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-            EntityManager emq = emf.createEntityManager();
-            
-            Query userdb = emq.createNativeQuery("SELECT * FROM User WHERE token='" + token + "';", User.class);
-            if (!(userdb.getResultList().size() == 1)) {
-                throw new CustomErrorMessage("Brugeren kunne ikke findes via token");
-            }
-            User user = (User) userdb.getSingleResult();
-            return user;
-        } else {
-            throw new CustomErrorMessage("Der er ikke logget ind. Token findes ikke...");
-        }
-    }
-    
-    @Override
-    public void setUser(User user, String token) throws CustomErrorMessage {
-        
-        User requestingUser = getUserFromToken(token);
-        
-        if (requestingUser.getUserType().equals("admin")) {
-            persistMerge(user);
-        } else {
-            throw new CustomErrorMessage("Det er kun admins der kan ændre i brugere");
-        }
-    }
-    
-    @Override
-    public User getUser(String userName, String token) throws CustomErrorMessage {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        User reqUser = getUserFromToken(token);
-        if (reqUser.getUserName().equals(userName) || reqUser.getUserType().equals("admin")) {
-            Query usersql = emq.createNativeQuery("SELECT * FROM User WHERE userName='" + userName + "';", User.class);
-            User user = (User) usersql.getSingleResult();
-            return user;
-        } else {
-            throw new CustomErrorMessage("Det er kun tilladt for admins at hente brugerprofiler");
-        }
-    }
-    
-    private boolean userAlreadyExist(String userName) {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        
-        Query usersql = emq.createNativeQuery("SELECT * FROM User WHERE userName='" + userName + "';", User.class);
-        
-        if (usersql.getResultList().size() >= 1) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    @Override
-    public Message getMessage(int messageId) throws CustomErrorMessage {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        Query messagesql = emq.createNativeQuery("SELECT * FROM Message WHERE messageId='" + messageId + "';", Message.class);
-        
-        if (messagesql.getResultList().size() == 1) {
-            Message msg = (Message) messagesql.getSingleResult();
-            return msg;
-        } else {
-            throw new CustomErrorMessage("Der skete en fejl under hentning af beskeden");
-        }
-    }
     
     
+//    @Override
+//    public Quiz getQuiz(String quizName) {
+//        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+//        EntityManager emq = emf.createEntityManager();
+//        
+//        Query quizsql = emq.createNativeQuery("SELECT * FROM Quiz WHERE name='" + quizName + "';", Quiz.class);
+//        Quiz quiz = (Quiz) quizsql.getSingleResult();
+//        
+//        return quiz;
+//    }
+//    
+//    @Override
+//    public void addQuiz(String quizName, String textQuestion, String token) throws CustomErrorMessage {
+//        if (getUserFromToken(token).getUserType().equals("admin")) {
+//            try {
+//                Quiz newQuiz = new Quiz();
+//                newQuiz.setName(quizName);
+//                newQuiz.setTextQuestion(textQuestion);
+//                persistInsert(newQuiz);
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                throw new CustomErrorMessage("Der skete en fejl ved indsættelse af den nye quiz. Prøv et andet navn.");
+//            }
+//        } else {
+//            throw new CustomErrorMessage("Det er kun muligt for admins at oprette nye spørgsmål");
+//        }
+//    }
+//    
+//    @Override
+//    public void addUsersOfAnsweredQuizzes(String quizName, String token) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
+//    
+//    @Override
+//    public Quiz addQuizAnswers(String quizName) {
+//        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+//    }
+//    
+//     @Override
+//    public List<QuizAnswer> getQuizAnswers(String quizName) {
+//        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+//        EntityManager emq = emf.createEntityManager();
+//        
+//        Query quizsql = emq.createNativeQuery("SELECT * FROM quizAnswer WHERE name='" + quizName + "';", QuizAnswer.class);
+//        List<QuizAnswer> quizAnswers = (List<QuizAnswer>) quizsql.getResultList();
+//        return quizAnswers;
+//    }
+//    
+//    @Override
+//    public List<AnsweredQuiz> getUsersOfAnsweredQuizzes(String quizName) {
+//        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+//        EntityManager emq = emf.createEntityManager();
+//        
+//        Query quizAnswerssql = emq.createNativeQuery("SELECT * FROM AnsweredQuiz WHERE name='" + quizName + "';", AnsweredQuiz.class);
+//        List<AnsweredQuiz> ansQuizzes = quizAnswerssql.getResultList();
+//        return ansQuizzes;
+//    }
     
-    @Override
-    public Quiz getQuiz(String quizName) {
-        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
-        EntityManager emq = emf.createEntityManager();
-        
-        Query quizsql = emq.createNativeQuery("SELECT * FROM Quiz WHERE name='" + quizName + "';", Quiz.class);
-        Quiz quiz = (Quiz) quizsql.getSingleResult();
-        
-        return quiz;
-    }
+//     @Override
+//    public List<Quiz> getQuizzes() {
+//        EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+//        EntityManager emq = emf.createEntityManager();
+//        
+//        Query quizsql = emq.createNativeQuery("SELECT * FROM Quiz;", Quiz.class);
+//        List<Quiz> quizzes = quizsql.getResultList();
+//        
+//        return quizzes;
+//    }
     
-    @Override
-    public void addQuiz(String quizName, String textQuestion, String token) throws CustomErrorMessage {
-        if (getUserFromToken(token).getUserType().equals("admin")) {
-            try {
-                Quiz newQuiz = new Quiz();
-                newQuiz.setName(quizName);
-                newQuiz.setTextQuestion(textQuestion);
-                persistInsert(newQuiz);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new CustomErrorMessage("Der skete en fejl ved indsættelse af den nye quiz. Prøv et andet navn.");
-            }
-        } else {
-            throw new CustomErrorMessage("Det er kun muligt for admins at oprette nye spørgsmål");
-        }
-    }
-    
-    @Override
-    public void addUsersOfAnsweredQuizzes(String quizName, String token) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public Quiz addQuizAnswers(String quizName) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
+//    @Override
+//    public void deleteUser(String userName, String token) throws CustomErrorMessage {
+//        User reqUser = getUserFromToken(token);
+//        if (reqUser.getUserType().equals("admin") || reqUser.getUserName().equals(userName)){
+//            EntityManagerFactory emf = javax.persistence.Persistence.createEntityManagerFactory("CleanOutLoudServerPU");
+//            EntityManager emq = emf.createEntityManager();
+//            
+//            try {
+//                Query messagesql = emq.createNativeQuery("SELECT * FROM Message WHERE user='" + userName + "';", Message.class);
+//                List<Message> messages = messagesql.getResultList();
+//                for (Message m: messages) {
+//                    emq.createNativeQuery("DELETE FROM Comment WHERE messageId='" + m.getMessageId() + "';");
+//                }
+//                emq.createNativeQuery("DELETE FROM Message WHERE user='" + userName + "';");
+//                emq.createNativeQuery("DELETE FROM User WHERE userName='" + userName + "';");
+//            } catch (Exception e) {
+//                throw new CustomErrorMessage("Kunne ikke slette den aktuelle bruger");
+//            }
+//        } else {
+//            throw new CustomErrorMessage("Det er kun tiladt at slette en bruger hvis du er admin eller det er din egen bruger");
+//        }
+//    }
     
     
 }
